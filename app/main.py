@@ -3,7 +3,7 @@ from typing import Union
 
 from fastapi import FastAPI
 
-from .routers import journal
+from routers import journal
 
 app = FastAPI()
 

@@ -1,10 +1,6 @@
-import hashlib
-from datetime import datetime
-from ssl import create_default_context
-from time import sleep
-from app.models.campaign import Campaign, CampaignCreate
-from app.models.user import User, UserCreate
-from app.db.db import db_create_campaign, db_get_user, db_init, db_create_user
+from app.models.campaign import CampaignCreate
+from app.models.user import UserCreate
+from app.db.database import db_create_campaign, db_init, db_create_user
 
 
 def init_db():
@@ -15,30 +11,26 @@ def init_db():
 # Create seeded user
 def create_user():
     print("Creating seeded user")
-    user = UserCreate(
-        name="Diivix",
-        email="diivix@chronicle.com",
-        password="password"
-    )
-    created_user = db_create_user(user)
-    print(created_user)
+    user = UserCreate(name="Diivix", email="diivix@chronicle.com", password="password")
+    db_user = db_create_user(user)
+    print(db_user)
+    return db_user
 
 
 # Create seeded user
-def create_campaign():
+def create_campaign(user: UserCreate):
     print("Creating seeded campaign")
-    user = db_get_user(1)
-    print(user)
 
     campaign = CampaignCreate(
         name="My Campaign",
         description="A simple campaign",
     )
-    create_campaign = db_create_campaign(campaign, user)
-    print(create_campaign)
+    db_campaign = db_create_campaign(campaign, user)
+    print(db_campaign)
+    return db_campaign
 
 
 if __name__ == "__main__":
     init_db()
-    create_user()
-    create_campaign()
+    user = create_user()
+    campaign = create_campaign(user)

@@ -1,36 +1,43 @@
-from datetime import datetime
+from typing import List
 from fastapi import APIRouter
 
-from ..db.db import db_create_campaign, db_deactivate_campaign, db_get_all_campaigns, db_get_campaign, db_get_user
+from ..db.database import (
+    db_create_campaign,
+    db_deactivate_campaign,
+    db_get_all_campaigns,
+    db_get_campaign,
+    db_get_user,
+)
 
-from ..models.campaign import Campaign, CampaignCreate
+from ..models.campaign import CampaignCreate, CampaignRead
 
 router = APIRouter()
 
 # Campaigns
 
 # Create new campaign
-@router.post("/journal/campaign")
-def create_campaign(campaign: CampaignCreate):
+@router.post(path="/journal/campaign", response_model=CampaignRead)
+def create_campaign(campaign: CampaignCreate) -> CampaignRead:
     # TODO: change this
     user = db_get_user(1)
     return db_create_campaign(campaign, user)
 
+
 # Get a single campaign
-@router.get("/journal/campaign/{id}")
-def campaign(id: int):
+@router.get(path="/journal/campaign/{id}", response_model=CampaignRead)
+def campaign(id: int) -> CampaignRead:
     return db_get_campaign(id)
 
 
 # Get all campaigns
-@router.get("/journal/campaigns")
-def campaigns():
+@router.get(path="/journal/campaigns", response_model=List[CampaignRead])
+def campaigns() -> List[CampaignRead]:
     return db_get_all_campaigns()
 
 
 # Delete a campaign
-@router.delete("/journal/campaign/{id}")
-def delete_campaign(id: int):
+@router.delete(path="/journal/campaign/{id}", response_model=bool)
+def delete_campaign(id: int) -> bool:
     return db_deactivate_campaign(id)
 
 
@@ -66,7 +73,7 @@ def delete_campaign(id: int):
 #     return {"value": id}
 
 
-# Delete a single journal entry in a campaign
-@router.delete("/journal/{campaign}/entry/{id}")
-def delete_entry(campaign: str, id: int):
-    return {"value": id}
+# # Delete a single journal entry in a campaign
+# @router.delete(path="/journal/{campaign}/entry/{id}", response_model=bool)
+# def delete_entry(campaign: str, id: int):
+#     return {"value": id}

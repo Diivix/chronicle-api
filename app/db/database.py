@@ -2,8 +2,8 @@ import hashlib
 from typing import List
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from ..models.user import User, UserCreate, UserRead
-from ..models.campaign import Campaign, CampaignCreate, CampaignRead
+from ..models.user import User, UserCreate
+from ..models.campaign import Campaign, CampaignCreate
 
 sqlite_file_name = "data/database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -20,10 +20,10 @@ def db_init():
 # Users
 
 
-def db_create_user(user: UserCreate) -> UserRead:
+def db_create_user(user: UserCreate) -> User:
     with Session(engine) as session:
         db_user = User.from_orm(user)
-        db_user.password_hash = hashlib.md5(user.password.encode('utf_8')).hexdigest()
+        db_user.password_hash = hashlib.md5(user.password.encode("utf_8")).hexdigest()
 
         session.add(db_user)
         session.commit()
@@ -31,53 +31,60 @@ def db_create_user(user: UserCreate) -> UserRead:
         return db_user
 
 
-def db_get_user(user_id: int) -> UserRead:
+def db_get_user(user_id: int) -> User:
     with Session(engine) as session:
         statement = select(User).where(User.id == user_id)
-        user = session.execute(statement).one()
+        user = session.exec(statement).one()
         return user
 
 
 # Campaigns
 
 
-def db_create_campaign(campaign: CampaignCreate, user: UserRead) -> CampaignRead:
+def db_create_campaign(campaign: CampaignCreate, user: User) -> Campaign:
     with Session(engine) as session:
         db_campaign = Campaign.from_orm(campaign)
         db_campaign.user = user
-
         session.add(db_campaign)
+        # session.add(user)
+
         session.commit()
         session.refresh(db_campaign)
         return db_campaign
 
 
-def db_get_campaign(id: int) -> CampaignRead:
+def db_get_campaign(id: int) -> Campaign:
     with Session(engine) as session:
         statement = select(Campaign).where(Campaign.id == id)
-        results = session.execute(statement)
+        results = session.exec(statement)
         return results.one()
 
 
-def db_get_all_campaigns() -> List[CampaignRead]:
+def db_get_all_campaigns() -> List[Campaign]:
     with Session(engine) as session:
         statement = select(Campaign)
-        results = session.execute(statement).all()
+        results = session.exec(statement).all()
         return results
 
 
 def db_deactivate_campaign(id: int) -> bool:
     with Session(engine) as session:
         statement = select(Campaign).where(Campaign.id == id)
-        results = session.execute(statement)
+        results = session.exec(statement)
         campaign = results.one()
 
         session.delete(campaign)
         session.commit()
 
-        results = session.execute(statement)
-        campaigns = results.first()
+        results = session.exec(statement)
+        campaign = results.first()
 
         if campaign is not None:
             print("Campaign not not deactivated")
             return False
+
+
+# TODO: Fix this so it works with package imports.
+if __name__ == "__main__":
+    db_init()
+    print("DB initialized")

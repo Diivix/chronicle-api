@@ -38,10 +38,7 @@ def db_get_user(user_id: int) -> UserRead:
 # Campaigns
 
 
-def db_create_campaign(campaign: Campaign) -> CampaignRead:
-    # TODO: remove this after auth has been implemented
-    user = db_get_user(1)
-
+def db_create_campaign(campaign: Campaign, user: UserRead) -> CampaignRead:
     with Session(engine) as session:
         db_campaign = Campaign.from_orm(campaign)
         db_campaign.user = user
@@ -52,11 +49,11 @@ def db_create_campaign(campaign: Campaign) -> CampaignRead:
         return db_campaign
 
 
-def db_get_campaign(name: str) -> CampaignRead:
+def db_get_campaign(id: int) -> CampaignRead:
     with Session(engine) as session:
-        statement = select(Campaign).where(Campaign.name == name)
+        statement = select(Campaign).where(Campaign.id == id)
         results = session.execute(statement)
-        return results
+        return results.one()
 
 
 def db_get_all_campaigns() -> List[CampaignRead]:
@@ -66,9 +63,9 @@ def db_get_all_campaigns() -> List[CampaignRead]:
         return results
 
 
-def db_deactivate_campaign(name: str) -> bool:
+def db_deactivate_campaign(id: int) -> bool:
     with Session(engine) as session:
-        statement = select(Campaign).where(Campaign.name == name)
+        statement = select(Campaign).where(Campaign.id == id)
         results = session.execute(statement)
         campaign = results.one()
 

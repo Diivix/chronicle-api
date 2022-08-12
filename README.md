@@ -22,7 +22,13 @@ poetry shell
 # Ensure the VS Code python version is using our Poetry Virtual Environment. Check bottom right.
 # This is required for intellisense to work properly.
 
+# Install packages
 poetry install
+
+# Optional: Seed database
+poetry run python3 seed_db.py
+
+# Run
 poetry run python3 run.py
 
 # Swagger Docs

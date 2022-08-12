@@ -1,18 +1,24 @@
+import hashlib
 from datetime import datetime
 from fastapi import APIRouter
 
-from ..db.db import db_create_user
+from ..db.db import db_create_user, db_get_user
 
-from ..models.user import User, UserCreate
+from ..models.user import User, UserCreate, UserRead
 
 router = APIRouter()
 
 # Create new campaign
 @router.post("/user")
-def create_user(user: UserCreate) -> User:
-    user_user = User(**user.dict())
+def create_user(user: UserCreate) -> UserRead:
+    updated_user = User(**user.dict())
     now = datetime.now().isoformat()
-    user_user.created = now
-    user_user.updated = now
-    db_create_user(user_user)
-    return user
+    updated_user.created = now
+    updated_user.updated = now
+    updated_user.password_hash = hashlib.md5(user.password.encode('utf_8')).hexdigest()
+    return db_create_user(updated_user)
+
+
+@router.get("/user/{id}")
+def get_user(id: int) -> UserRead:
+    return db_get_user(id)

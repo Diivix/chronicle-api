@@ -7,17 +7,17 @@ from .common import CommonBase
 class UserBase(SQLModel):
     name: str
     email: str
-    password_hash: str
 
 
 class User(CommonBase, UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    password_hash: str
 
-    campaigns: List["Campaign"] = Relationship(back_populates="user")
+    campaigns: List["Campaign"] = Relationship(back_populates="user")  # type: ignore
 
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 
 class UserRead(CommonBase, UserBase):

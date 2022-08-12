@@ -23,7 +23,7 @@ poetry shell
 # This is required for intellisense to work properly.
 
 poetry install
-poetry run python3 app/main.py
+poetry run python3 run.py
 
 # Swagger Docs
 http://localhost:8000/docs

@@ -1,14 +1,21 @@
-import uvicorn
-from typing import Union
-
 from fastapi import FastAPI
 
-from routers import journal
+from .db.db import db_init
 
+from .routers import journal
+
+db_init()
 app = FastAPI()
 
+
+@app.get("/")
+def index():
+    return "Chronicle online."
+
+
+@app.get("/health")
+def index():
+    return "healthy"
+
+
 app.include_router(journal.router)
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)

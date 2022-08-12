@@ -11,7 +11,7 @@ class UserBase(SQLModel):
 
 class User(CommonBase, UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    password_hash: str
+    password_hash: Optional[str] = Field(default=None)
 
     campaigns: List["Campaign"] = Relationship(back_populates="user")  # type: ignore
 

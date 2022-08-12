@@ -1,8 +1,9 @@
+import hashlib
 from typing import List
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from ..models.user import User, UserRead
-from ..models.campaign import Campaign, CampaignRead
+from ..models.user import User, UserCreate, UserRead
+from ..models.campaign import Campaign, CampaignCreate, CampaignRead
 
 sqlite_file_name = "data/database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -19,9 +20,11 @@ def db_init():
 # Users
 
 
-def db_create_user(user: User) -> UserRead:
+def db_create_user(user: UserCreate) -> UserRead:
     with Session(engine) as session:
         db_user = User.from_orm(user)
+        db_user.password_hash = hashlib.md5(user.password.encode('utf_8')).hexdigest()
+
         session.add(db_user)
         session.commit()
         session.refresh(db_user)
@@ -38,7 +41,7 @@ def db_get_user(user_id: int) -> UserRead:
 # Campaigns
 
 
-def db_create_campaign(campaign: Campaign, user: UserRead) -> CampaignRead:
+def db_create_campaign(campaign: CampaignCreate, user: UserRead) -> CampaignRead:
     with Session(engine) as session:
         db_campaign = Campaign.from_orm(campaign)
         db_campaign.user = user

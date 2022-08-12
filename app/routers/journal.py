@@ -14,12 +14,7 @@ router = APIRouter()
 def create_campaign(campaign: CampaignCreate):
     # TODO: change this
     user = db_get_user(1)
-
-    updated_campaign = Campaign(**campaign.dict())
-    now = datetime.now().isoformat()
-    updated_campaign.created = now
-    updated_campaign.updated = now
-    return db_create_campaign(updated_campaign, user)
+    return db_create_campaign(campaign, user)
 
 # Get a single campaign
 @router.get("/journal/campaign/{id}")

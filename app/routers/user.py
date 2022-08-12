@@ -11,12 +11,7 @@ router = APIRouter()
 # Create new campaign
 @router.post("/user")
 def create_user(user: UserCreate) -> UserRead:
-    updated_user = User(**user.dict())
-    now = datetime.now().isoformat()
-    updated_user.created = now
-    updated_user.updated = now
-    updated_user.password_hash = hashlib.md5(user.password.encode('utf_8')).hexdigest()
-    return db_create_user(updated_user)
+    return db_create_user(user)
 
 
 @router.get("/user/{id}")

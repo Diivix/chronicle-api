@@ -24,6 +24,7 @@ def db_init():
 # E.g. only users should be able to CRUD their own data.
 
 # Users
+# TODO: Lock down access to users.
 
 
 def db_create_user(user: UserCreate) -> User:
@@ -45,9 +46,8 @@ def db_get_user(user_id: int) -> User:
 
 
 def db_delete_user(id: int) -> bool:
-    with Session(engine) as session:
-        statement = select(User).where(User.id == id)
-        return db_delete_entity(statement)
+    statement = select(User).where(User.id == id)
+    return db_delete_entity(statement)
 
 
 # Campaigns
@@ -64,9 +64,11 @@ def db_create_campaign(campaign: CampaignCreate, user: User) -> Campaign:
         return db_campaign
 
 
-def db_get_campaign(id: int) -> Campaign:
+def db_get_campaign(id: int, user: User) -> Campaign:
     with Session(engine) as session:
-        statement = select(Campaign).where(Campaign.id == id)
+        statement = select(Campaign).where(
+            Campaign.id == id, Campaign.user_id == user.id
+        )
         result = session.exec(statement).one()
         return result
 
@@ -78,21 +80,21 @@ def db_get_all_user_campaigns(user: User) -> List[Campaign]:
         return results
 
 
-def db_delete_campaign(id: int) -> bool:
-    with Session(engine) as session:
-        statement = select(Campaign).where(Campaign.id == id)
-        return db_delete_entity(statement)
+def db_delete_campaign(id: int, user: User) -> bool:
+    statement = select(Campaign).where(Campaign.id == id, Campaign.user_id == user.id)
+    return db_delete_entity(statement)
 
 
 # Journal Entries
 
 
 def db_create_journal_entry(
-    entry: JournalEntryCreate, campaign: CampaignCreate
+    entry: JournalEntryCreate, campaign_id: int, user: User
 ) -> JournalEntry:
     with Session(engine) as session:
+        db_campaign = db_get_campaign(campaign_id, user)
         db_entry = JournalEntry.from_orm(entry)
-        db_entry.campaign = campaign
+        db_entry.campaign = db_campaign
         session.add(db_entry)
 
         session.commit()
@@ -115,9 +117,8 @@ def db_get_all_campaign_journal_entries(campaign: Campaign) -> List[JournalEntry
 
 
 def db_delete_journal_entry(id: int) -> bool:
-    with Session(engine) as session:
-        statement = select(JournalEntry).where(JournalEntry.id == id)
-        return db_delete_entity(statement)
+    statement = select(JournalEntry).where(JournalEntry.id == id)
+    return db_delete_entity(statement)
 
 
 # Common

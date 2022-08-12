@@ -1,7 +1,12 @@
-from app.models.campaign import CampaignCreate
-from app.models.journal_entry import JournalEntryCreate
-from app.models.user import UserCreate
-from app.db.database import db_create_campaign, db_init, db_create_user, db_create_journal_entry
+from app.models.campaign import Campaign, CampaignCreate
+from app.models.journal_entry import JournalEntry, JournalEntryCreate
+from app.models.user import User, UserCreate
+from app.db.database import (
+    db_create_campaign,
+    db_init,
+    db_create_user,
+    db_create_journal_entry,
+)
 
 
 def init_db():
@@ -10,7 +15,7 @@ def init_db():
 
 
 # Create seeded user
-def create_user():
+def create_user() -> User:
     print("Creating seeded user")
     user = UserCreate(name="Diivix", email="diivix@chronicle.com", password="password")
     db_user = db_create_user(user)
@@ -19,7 +24,7 @@ def create_user():
 
 
 # Create seeded user
-def create_campaign(user: UserCreate):
+def create_campaign(user: UserCreate) -> Campaign:
     print("Creating seeded campaign")
 
     campaign = CampaignCreate(
@@ -30,11 +35,12 @@ def create_campaign(user: UserCreate):
     print(db_campaign)
     return db_campaign
 
-def create_journal_entry(campaign: CampaignCreate):
+
+def create_journal_entry(campaign_id: int, user: User) -> JournalEntry:
     print("Creating seeded journal entry")
-    
+
     journal_entry = JournalEntryCreate(entry="My first journal entry")
-    db_journal_entry = db_create_journal_entry(journal_entry, campaign)
+    db_journal_entry = db_create_journal_entry(journal_entry, campaign_id, user)
     print(db_journal_entry)
     return db_journal_entry
 
@@ -43,4 +49,4 @@ if __name__ == "__main__":
     init_db()
     user = create_user()
     campaign = create_campaign(user)
-    entry = create_journal_entry(campaign)
+    entry = create_journal_entry(campaign.id, user)

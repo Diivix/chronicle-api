@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from ..db.database import (
     db_create_campaign,
     db_delete_campaign,
-    db_get_all_campaigns,
+    db_get_all_user_campaigns,
     db_get_campaign,
     db_get_user,
 )
@@ -32,7 +32,7 @@ def campaign(id: int) -> CampaignRead:
 # Get all campaigns
 @router.get(path="/journal/campaigns", response_model=List[CampaignRead])
 def campaigns() -> List[CampaignRead]:
-    return db_get_all_campaigns()
+    return db_get_all_user_campaigns()
 
 
 # Delete a campaign

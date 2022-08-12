@@ -1,5 +1,7 @@
 import hashlib
-from typing import List
+from http.client import HTTPException
+from typing import Any, List
+from unittest import result
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from ..models.user import User, UserCreate
@@ -17,6 +19,9 @@ def db_init():
     """Create db and tables if they don't exist."""
     SQLModel.metadata.create_all(engine)
 
+
+# TODO: Queries will need to change when auth is added.'
+# E.g. only users should be able to CRUD their own data.
 
 # Users
 
@@ -38,16 +43,12 @@ def db_get_user(user_id: int) -> User:
         user = session.exec(statement).one()
         return user
 
+
 def db_delete_user(id: int) -> bool:
     with Session(engine) as session:
         statement = select(User).where(User.id == id)
-        user = session.exec(statement).one()
+        return db_delete_entity(statement)
 
-        session.delete(user)
-        session.commit()
-
-        user = session.exec(statement).first()
-        return user is None
 
 # Campaigns
 
@@ -57,7 +58,6 @@ def db_create_campaign(campaign: CampaignCreate, user: User) -> Campaign:
         db_campaign = Campaign.from_orm(campaign)
         db_campaign.user = user
         session.add(db_campaign)
-        # session.add(user)
 
         session.commit()
         session.refresh(db_campaign)
@@ -67,13 +67,13 @@ def db_create_campaign(campaign: CampaignCreate, user: User) -> Campaign:
 def db_get_campaign(id: int) -> Campaign:
     with Session(engine) as session:
         statement = select(Campaign).where(Campaign.id == id)
-        results = session.exec(statement)
-        return results.one()
+        result = session.exec(statement).one()
+        return result
 
 
-def db_get_all_campaigns() -> List[Campaign]:
+def db_get_all_user_campaigns(user: User) -> List[Campaign]:
     with Session(engine) as session:
-        statement = select(Campaign)
+        statement = select(Campaign).where(Campaign.user_id == user.id)
         results = session.exec(statement).all()
         return results
 
@@ -81,14 +81,60 @@ def db_get_all_campaigns() -> List[Campaign]:
 def db_delete_campaign(id: int) -> bool:
     with Session(engine) as session:
         statement = select(Campaign).where(Campaign.id == id)
-        campaign = session.exec(statement).one()
+        return db_delete_entity(statement)
 
-        session.delete(campaign)
+
+# Journal Entries
+
+
+def db_create_journal_entry(
+    entry: JournalEntryCreate, campaign: CampaignCreate
+) -> JournalEntry:
+    with Session(engine) as session:
+        db_entry = JournalEntry.from_orm(entry)
+        db_entry.campaign = campaign
+        session.add(db_entry)
+
+        session.commit()
+        session.refresh(db_entry)
+        return db_entry
+
+
+def db_get_journal_entry(id: int) -> JournalEntry:
+    with Session(engine) as session:
+        statement = select(JournalEntry).where(JournalEntry.id == id)
+        result = session.exec(statement).one()
+        return result
+
+
+def db_get_all_campaign_journal_entries(campaign: Campaign) -> List[JournalEntry]:
+    with Session(engine) as session:
+        statement = select(JournalEntry).where(JournalEntry.campaign_id == campaign.id)
+        results = session.exec(statement).all()
+        return results
+
+
+def db_delete_journal_entry(id: int) -> bool:
+    with Session(engine) as session:
+        statement = select(JournalEntry).where(JournalEntry.id == id)
+        return db_delete_entity(statement)
+
+
+# Common
+
+
+def db_delete_entity(statement) -> bool:
+    with Session(engine) as session:
+        result = session.exec(statement).first()
+        if result is None:
+            return False
+
+        session.delete(result)
         session.commit()
 
-        campaign = session.exec(statement).first()
-
-        return campaign is None
+        # Check it has been deleted
+        result = session.exec(statement).first()
+        return result is None
 
 
 # TODO: Fix this so it works with package imports.

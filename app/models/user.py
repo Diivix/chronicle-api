@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -14,7 +13,7 @@ class User(CommonBase, UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     password_hash: Optional[str] = Field(default=None)
 
-    campaigns: List["Campaign"] = Relationship(back_populates="user")  # type: ignore
+    campaigns: List["Campaign"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"})  # type: ignore
 
 
 class UserCreate(UserBase):

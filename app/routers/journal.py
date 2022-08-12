@@ -3,7 +3,7 @@ from fastapi import APIRouter
 
 from ..db.database import (
     db_create_campaign,
-    db_deactivate_campaign,
+    db_delete_campaign,
     db_get_all_campaigns,
     db_get_campaign,
     db_get_user,
@@ -36,9 +36,13 @@ def campaigns() -> List[CampaignRead]:
 
 
 # Delete a campaign
-@router.delete(path="/journal/campaign/{id}", response_model=bool)
-def delete_campaign(id: int) -> bool:
-    return db_deactivate_campaign(id)
+@router.delete(path="/journal/campaign/{id}", response_model=str)
+def delete_campaign(id: int) -> str:
+    result = db_delete_campaign(id)
+    if result:
+        return "Campaign deleted"
+    else:
+        return "Campaign not found or not deleted"
 
 
 # Journal entries

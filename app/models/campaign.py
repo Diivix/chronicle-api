@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
 from .common import CommonBase
@@ -16,7 +16,7 @@ class Campaign(CommonBase, CampaignBase, table=True):
     user_id: int = Field(default=None, foreign_key="user.id")
     user: User = Relationship(back_populates="campaigns")
 
-    # journal_entries: List["JournalEntry"] = Relationship(back_populates="campaign")  # type: ignore
+    journal_entries: List["JournalEntry"] = Relationship(back_populates="campaign", sa_relationship_kwargs={"cascade": "all, delete"})  # type: ignore
 
 
 class CampaignCreate(CampaignBase):

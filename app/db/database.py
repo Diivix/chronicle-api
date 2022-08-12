@@ -4,6 +4,7 @@ from sqlmodel import Session, SQLModel, create_engine, select
 
 from ..models.user import User, UserCreate
 from ..models.campaign import Campaign, CampaignCreate
+from ..models.journal_entry import JournalEntry, JournalEntryCreate
 
 sqlite_file_name = "data/database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -37,6 +38,16 @@ def db_get_user(user_id: int) -> User:
         user = session.exec(statement).one()
         return user
 
+def db_delete_user(id: int) -> bool:
+    with Session(engine) as session:
+        statement = select(User).where(User.id == id)
+        user = session.exec(statement).one()
+
+        session.delete(user)
+        session.commit()
+
+        user = session.exec(statement).first()
+        return user is None
 
 # Campaigns
 
@@ -67,21 +78,17 @@ def db_get_all_campaigns() -> List[Campaign]:
         return results
 
 
-def db_deactivate_campaign(id: int) -> bool:
+def db_delete_campaign(id: int) -> bool:
     with Session(engine) as session:
         statement = select(Campaign).where(Campaign.id == id)
-        results = session.exec(statement)
-        campaign = results.one()
+        campaign = session.exec(statement).one()
 
         session.delete(campaign)
         session.commit()
 
-        results = session.exec(statement)
-        campaign = results.first()
+        campaign = session.exec(statement).first()
 
-        if campaign is not None:
-            print("Campaign not not deactivated")
-            return False
+        return campaign is None
 
 
 # TODO: Fix this so it works with package imports.

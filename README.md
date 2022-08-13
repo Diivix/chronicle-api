@@ -40,3 +40,12 @@ poetry run python3 seed_db.py
 # Created the database for production
 poetry run python3 app/db/database.py
 ```
+
+## Docs
+
+For offline FastAPI and SQLModel docs:
+
+```bash
+docker build -t docs-offline -f docs/offline/Dockerfile .
+docker run --name docs-offline -d -p 8010:8010 -p 8020:8020 docs-offline
+```

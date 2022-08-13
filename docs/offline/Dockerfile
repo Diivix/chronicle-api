@@ -15,4 +15,3 @@ EXPOSE 8010
 EXPOSE 8020
 
 ENTRYPOINT [ "/root/entrypoint.sh" ]
-CMD ["fake"]

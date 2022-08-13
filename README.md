@@ -17,6 +17,10 @@ This app:
 
 ## Build and Run
 
+1. Start the MSSQL database. See [MS SQL with Tools](#MS-SQL-with-Tools)
+
+2. Start the application.
+
 ```bash
 poetry shell
 
@@ -41,11 +45,25 @@ poetry run python3 seed_db.py
 poetry run python3 app/db/database.py
 ```
 
-## Docs
+## Build Resources
+
+### Offline Docs
 
 For offline FastAPI and SQLModel docs:
 
 ```bash
-docker build -t docs-offline -f docs/offline/Dockerfile .
+docker build -t docs-offline -f resources/offline-docs/Dockerfile .
 docker run --name docs-offline -d -p 8010:8010 -p 8020:8020 docs-offline
+```
+
+### MS SQL with Tools
+
+For build and a custom MSSQL Server with SQL tools installed to run SQL commands
+
+```bash
+docker build -t mssql-2019-tools -f resources/mssql/Dockerfile .
+docker run --name mssql-2019-tools -d -p 1433:1433 -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=StrongP^ssword" -e "MSSQL_PID=Express" mssql-2019-tools
+
+docker exec -it mssql-2019-tools /bin/bash
+sqlcmd -S localhost -U sa -P StrongP^ssword -Q "SELECT @@VERSION"
 ```

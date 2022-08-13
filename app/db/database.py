@@ -10,8 +10,10 @@ from ..models.journal_entry import JournalEntry, JournalEntryCreate
 sqlite_file_name = "data/database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
+mssql_url = "mssql+pyodbc://sa:StrongP^ssword@localhost:1433/chronicle?driver=ODBC+Driver+17+for+SQL+Server"
+
 connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
+engine = create_engine(mssql_url, echo=True, connect_args=connect_args)
 
 
 def init_db():

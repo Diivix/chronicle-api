@@ -1,7 +1,6 @@
 import hashlib
 from typing import List
-from sqlmodel import Session, SQLModel, create_engine, select
-from fastapi import Depends
+from sqlmodel import Session, create_engine, select
 
 from ..models.user import User, UserCreate
 from ..models.campaign import Campaign, CampaignCreate
@@ -9,18 +8,12 @@ from ..models.journal_entry import JournalEntry, JournalEntryCreate
 
 sqlite_file_name = "data/database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
-
 mssql_url = "mssql+pyodbc://sa:StrongP^ssword@localhost:1433/chronicle?driver=ODBC+Driver+17+for+SQL+Server"
 
 connect_args = {"check_same_thread": False}
-engine = create_engine(mssql_url, echo=True, connect_args=connect_args).execution_options(autocommit=True)
-# if not database_exists("chronicle"):
-#     create_database("chronicle")
-
-
-def init_db():
-    """Create db and tables if they don't exist."""
-    SQLModel.metadata.create_all(engine)
+engine = create_engine(
+    mssql_url, echo=True, connect_args=connect_args
+).execution_options(autocommit=True)
 
 
 def get_db_session():
@@ -73,7 +66,7 @@ def db_create_campaign(
 
 def db_get_campaign(session: Session, id: int, user: User) -> Campaign:
     statement = select(Campaign).where(Campaign.id == id, Campaign.user_id == user.id)
-    result = session.exec(statement).one()
+    result = session.exec(statement).first()
     return result
 
 
@@ -106,16 +99,32 @@ def db_create_journal_entry(
     return db_entry
 
 
-def db_get_journal_entry(session: Session, id: int) -> JournalEntry:
-    statement = select(JournalEntry).where(JournalEntry.id == id)
-    result = session.exec(statement).one()
+def db_get_journal_entry(session: Session, entry_id: int, user: User) -> JournalEntry:
+    statement = (
+        select(JournalEntry)
+        .join(Campaign)
+        .where(
+            JournalEntry.id == entry_id,
+            Campaign.id == JournalEntry.campaign_id,
+            Campaign.user_id == user.id,
+        )
+    )
+    result = session.exec(statement).first()
     return result
 
 
-def db_get_all_campaign_journal_entries(
-    session: Session, campaign: Campaign
+def db_get_campaign_journal_entries(
+    session: Session, campaign_id: int, user: User
 ) -> List[JournalEntry]:
-    statement = select(JournalEntry).where(JournalEntry.campaign_id == campaign.id)
+    statement = (
+        select(JournalEntry, Campaign)
+        .join(Campaign)
+        .where(
+            Campaign.id == JournalEntry.campaign_id,
+            JournalEntry.campaign_id == campaign_id,
+            Campaign.user_id == user.id,
+        )
+    )
     results = session.exec(statement).all()
     return results
 
@@ -129,6 +138,7 @@ def db_delete_journal_entry(session: Session, id: int) -> bool:
 
 
 def db_delete_entity(session: Session, statement) -> bool:
+    """Delete an entity from the database"""
     result = session.exec(statement).first()
     if result is None:
         return False
@@ -139,9 +149,3 @@ def db_delete_entity(session: Session, statement) -> bool:
     # Check it has been deleted
     result = session.exec(statement).first()
     return result is None
-
-
-# TODO: Fix this so it works with package imports.
-if __name__ == "__main__":
-    init_db()
-    print("DB initialized")

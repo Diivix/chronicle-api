@@ -1,8 +1,8 @@
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from ..models.journal_entry import JournalEntryCreate, JournalEntryRead
+from ..models.journal_entry import JournalEntry, JournalEntryCreate, JournalEntryRead
 from ..models.campaign import CampaignCreate, CampaignRead
 from ..db.database import (
     db_create_campaign,
@@ -10,6 +10,8 @@ from ..db.database import (
     db_delete_campaign,
     db_get_all_user_campaigns,
     db_get_campaign,
+    db_get_campaign_journal_entries,
+    db_get_journal_entry,
     db_get_user,
     get_db_session,
 )
@@ -36,7 +38,10 @@ def create_campaign(
 def campaign(*, db_session: Session = Depends(get_db_session), id: int) -> CampaignRead:
     # TODO: Fix user after auth is implemented
     user = db_get_user(db_session, 1)
-    return db_get_campaign(db_session, id, user)
+    result = db_get_campaign(db_session, id, user)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Campaign not found.")
+    return result
 
 
 # Get all campaigns
@@ -74,16 +79,24 @@ def create_entry(
     return db_create_journal_entry(db_session, entry, campaign_id, user)
 
 
-# # Get a single journal entry in a campaign
-# @router.get("/{campaign}/entry/{id}")
-# def entry(*, db_session: Session = Depends(get_db_session), campaign: str, id: int):
-#     return {"value": id}
+# Get a single journal entry in a campaign
+@router.get(path="/entry/{entry_id}", response_model=JournalEntryRead)
+def journal_entry(*, db_session: Session = Depends(get_db_session), entry_id: int):
+    # TODO: Fix user after auth is implemented
+    user = db_get_user(db_session, 1)
+    result = db_get_journal_entry(db_session, entry_id, user)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Journal entry not found or not available.")
+    return result
 
 
-# # Get all journal entries to a campaign
-# @router.get("/campaign/{campaign}")
-# def campaign(*, db_session: Session = Depends(get_db_session), campaign: str):
-#     return {"campaign": campaign}
+# Get all journal entries for a campaign
+@router.get("/entries/campaign/{campaign}", response_model=List[JournalEntryRead])
+def campaign(*, db_session: Session = Depends(get_db_session), campaign_id: int):
+    # TODO: Fix user after auth is implemented
+    user = db_get_user(db_session, 1)
+    results = db_get_campaign_journal_entries(db_session, campaign_id, user)
+    return results
 
 
 # # Update a campaign

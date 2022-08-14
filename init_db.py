@@ -22,14 +22,15 @@ engine = create_engine(
 ).execution_options(autocommit=True)
 
 def init_db():
+    """Create db and tables if they don't exist."""
     if database_exists(engine.url):
         drop_database(engine.url)
 
     create_database(engine.url)
     SQLModel.metadata.create_all(engine)
 
-# Create seeded user
 def create_user() -> User:
+    """Create a seeded user"""
     with Session(engine) as session:
         print("Creating seeded user")
         user = UserCreate(
@@ -40,8 +41,8 @@ def create_user() -> User:
         return db_user
 
 
-# Create seeded user
 def create_campaign(user: UserCreate) -> Campaign:
+    """Create a seeded campaign"""
     with Session(engine) as session:
         print("Creating seeded campaign")
 
@@ -55,6 +56,7 @@ def create_campaign(user: UserCreate) -> Campaign:
 
 
 def create_journal_entry(campaign_id: int, user: User) -> JournalEntry:
+    """Create a seeded journal entry"""
     with Session(engine) as session:
         print("Creating seeded journal entry")
 
@@ -69,6 +71,7 @@ def create_journal_entry(campaign_id: int, user: User) -> JournalEntry:
 if __name__ == "__main__":
     init_db()
 
+    # TODO: Pass in variable to seed database
     user = create_user()
     campaign = create_campaign(user)
     entry = create_journal_entry(campaign.id, user)

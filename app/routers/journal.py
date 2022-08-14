@@ -8,6 +8,7 @@ from ..db.database import (
     db_create_campaign,
     db_create_journal_entry,
     db_delete_campaign,
+    db_delete_journal_entry,
     db_get_all_user_campaigns,
     db_get_campaign,
     db_get_campaign_journal_entries,
@@ -34,11 +35,13 @@ def create_campaign(
 
 
 # Get a single campaign
-@router.get(path="/campaign/{id}", response_model=CampaignRead)
-def campaign(*, db_session: Session = Depends(get_db_session), id: int) -> CampaignRead:
+@router.get(path="/campaign/{campaign_id}", response_model=CampaignRead)
+def campaign(
+    *, db_session: Session = Depends(get_db_session), campaign_id: int
+) -> CampaignRead:
     # TODO: Fix user after auth is implemented
     user = db_get_user(db_session, 1)
-    result = db_get_campaign(db_session, id, user)
+    result = db_get_campaign(db_session, campaign_id, user)
     if result is None:
         raise HTTPException(status_code=404, detail="Campaign not found.")
     return result
@@ -52,12 +55,16 @@ def campaigns(*, db_session: Session = Depends(get_db_session)) -> List[Campaign
     return db_get_all_user_campaigns(db_session, user)
 
 
+# TODO: Add an update route for journal entries
+
 # Delete a campaign
-@router.delete(path="/campaign/{id}", response_model=str)
-def delete_campaign(*, db_session: Session = Depends(get_db_session), id: int) -> str:
+@router.delete(path="/campaign/{campaign_id}", response_model=str)
+def delete_campaign(
+    *, db_session: Session = Depends(get_db_session), campaign_id: int
+) -> str:
     # TODO: Fix user after auth is implemented
     user = db_get_user(db_session, 1)
-    result = db_delete_campaign(db_session, id, user)
+    result = db_delete_campaign(db_session, campaign_id, user)
     if result:
         return "Campaign deleted"
     else:
@@ -80,40 +87,42 @@ def create_entry(
 
 
 # Get a single journal entry in a campaign
-@router.get(path="/entry/{entry_id}", response_model=JournalEntryRead)
-def journal_entry(*, db_session: Session = Depends(get_db_session), entry_id: int):
+@router.get(path="/entry/{campaign_id}/{entry_id}", response_model=JournalEntryRead)
+def journal_entry(
+    *, db_session: Session = Depends(get_db_session), campaign_id: int, entry_id: int
+):
     # TODO: Fix user after auth is implemented
     user = db_get_user(db_session, 1)
-    result = db_get_journal_entry(db_session, entry_id, user)
+    result = db_get_journal_entry(db_session, campaign_id, entry_id, user)
     if result is None:
         raise HTTPException(
-            status_code=404, detail="Journal entry not found or not available."
+            status_code=404, detail="Journal entry not found or not accessible."
         )
     return result
 
 
 # Get all journal entries for a campaign
 @router.get("/entries/campaign/{campaign_id}", response_model=List[JournalEntryRead])
-def campaign(*, db_session: Session = Depends(get_db_session), campaign_id: int):
+def campaign_journal_entries(
+    *, db_session: Session = Depends(get_db_session), campaign_id: int
+):
     # TODO: Fix user after auth is implemented
     user = db_get_user(db_session, 1)
     results = db_get_campaign_journal_entries(db_session, campaign_id, user)
     return results
 
 
-# # Update a campaign
-# @router.put("/{campaign}")
-# def update_campaign(*, db_session: Session = Depends(get_db_session), campaign: str, campaign_request: CampaignRequest):
-#     return {"campaign": campaign}
+# TODO: Add an update route for journal entries
 
-
-# # Update a single journal entry in a campaign
-# @router.put("/{campaign}/entry/{id}")
-# def update_entry(*, db_session: Session = Depends(get_db_session), campaign: str, id: int, entry: JournalEntryRequest):
-#     return {"value": id}
-
-
-# # Delete a single journal entry in a campaign
-# @router.delete(path="/journal/{campaign}/entry/{id}", response_model=bool)
-# def delete_entry(*, db_session: Session = Depends(get_db_session), campaign: str, id: int):
-#     return {"value": id}
+# Delete a single journal entry
+@router.delete(path="/entry/{campaign_id}/{entry_id}", response_model=str)
+def delete_journal_entry(
+    *, db_session: Session = Depends(get_db_session), campaign_id: int, entry_id: int
+) -> str:
+    # TODO: Fix user after auth is implemented
+    user = db_get_user(db_session, 1)
+    result = db_delete_journal_entry(db_session, campaign_id, entry_id, user)
+    if result:
+        return "Journal entry deleted"
+    else:
+        return "Journal entry not found or not accessible"

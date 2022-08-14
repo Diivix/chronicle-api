@@ -44,8 +44,8 @@ def db_get_user(session: Session, user_id: int) -> User:
     return user
 
 
-def db_delete_user(session: Session, id: int) -> bool:
-    statement = select(User).where(User.id == id)
+def db_delete_user(session: Session, user_id: int) -> bool:
+    statement = select(User).where(User.id == user_id)
     return db_delete_entity(session, statement)
 
 
@@ -64,8 +64,10 @@ def db_create_campaign(
     return db_campaign
 
 
-def db_get_campaign(session: Session, id: int, user: User) -> Campaign:
-    statement = select(Campaign).where(Campaign.id == id, Campaign.user_id == user.id)
+def db_get_campaign(session: Session, campaign_id: int, user: User) -> Campaign:
+    statement = select(Campaign).where(
+        Campaign.id == campaign_id, Campaign.user_id == user.id
+    )
     result = session.exec(statement).first()
     return result
 
@@ -76,8 +78,10 @@ def db_get_all_user_campaigns(session: Session, user: User) -> List[Campaign]:
     return results
 
 
-def db_delete_campaign(session: Session, id: int, user: User) -> bool:
-    statement = select(Campaign).where(Campaign.id == id, Campaign.user_id == user.id)
+def db_delete_campaign(session: Session, campaign_id: int, user: User) -> bool:
+    statement = select(Campaign).where(
+        Campaign.id == campaign_id, Campaign.user_id == user.id
+    )
     return db_delete_entity(session, statement)
 
 
@@ -99,12 +103,15 @@ def db_create_journal_entry(
     return db_entry
 
 
-def db_get_journal_entry(session: Session, entry_id: int, user: User) -> JournalEntry:
+def db_get_journal_entry(
+    session: Session, campaign_id, entry_id: int, user: User
+) -> JournalEntry:
     statement = (
         select(JournalEntry)
         .join(Campaign)
         .where(
             JournalEntry.id == entry_id,
+            Campaign.id == campaign_id,
             Campaign.id == JournalEntry.campaign_id,
             Campaign.user_id == user.id,
         )
@@ -130,8 +137,19 @@ def db_get_campaign_journal_entries(
     return results
 
 
-def db_delete_journal_entry(session: Session, id: int) -> bool:
-    statement = select(JournalEntry).where(JournalEntry.id == id)
+def db_delete_journal_entry(
+    session: Session, campaign_id: int, entry_id: int, user: User
+) -> bool:
+    statement = (
+        select(JournalEntry)
+        .join(Campaign)
+        .where(
+            JournalEntry.id == entry_id,
+            Campaign.id == campaign_id,
+            Campaign.id == JournalEntry.campaign_id,
+            Campaign.user_id == user.id,
+        )
+    )
     return db_delete_entity(session, statement)
 
 

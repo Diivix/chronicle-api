@@ -86,12 +86,14 @@ def journal_entry(*, db_session: Session = Depends(get_db_session), entry_id: in
     user = db_get_user(db_session, 1)
     result = db_get_journal_entry(db_session, entry_id, user)
     if result is None:
-        raise HTTPException(status_code=404, detail="Journal entry not found or not available.")
+        raise HTTPException(
+            status_code=404, detail="Journal entry not found or not available."
+        )
     return result
 
 
 # Get all journal entries for a campaign
-@router.get("/entries/campaign/{campaign}", response_model=List[JournalEntryRead])
+@router.get("/entries/campaign/{campaign_id}", response_model=List[JournalEntryRead])
 def campaign(*, db_session: Session = Depends(get_db_session), campaign_id: int):
     # TODO: Fix user after auth is implemented
     user = db_get_user(db_session, 1)

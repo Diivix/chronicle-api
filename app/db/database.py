@@ -117,14 +117,15 @@ def db_get_campaign_journal_entries(
     session: Session, campaign_id: int, user: User
 ) -> List[JournalEntry]:
     statement = (
-        select(JournalEntry, Campaign)
+        select(JournalEntry)
         .join(Campaign)
         .where(
+            Campaign.id == campaign_id,
             Campaign.id == JournalEntry.campaign_id,
-            JournalEntry.campaign_id == campaign_id,
             Campaign.user_id == user.id,
         )
     )
+
     results = session.exec(statement).all()
     return results
 

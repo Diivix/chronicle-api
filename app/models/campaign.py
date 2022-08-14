@@ -6,7 +6,7 @@ from .user import User
 
 
 class CampaignBase(SQLModel):
-    name: str = Field(index=True)
+    name: str
     description: str
 
 

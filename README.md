@@ -65,5 +65,8 @@ docker build -t mssql-2019-tools -f resources/mssql/Dockerfile .
 docker run --name mssql-2019-tools -d -p 1433:1433 -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=StrongP^ssword" -e "MSSQL_PID=Express" mssql-2019-tools
 
 docker exec -it mssql-2019-tools /bin/bash
-sqlcmd -S localhost -U sa -P StrongP^ssword -Q "SELECT @@VERSION"
+sqlcmd -C -S localhost -U sa -P StrongP^ssword -Q "SELECT @@VERSION"
+sqlcmd -C -S localhost -U sa -P StrongP^ssword -Q "CREATE DATABASE chronicle;"
+
+sqlcmd -C -S localhost -U sa -P StrongP^ssword -d chronicle -Q "SELECT id FROM user;"
 ```
